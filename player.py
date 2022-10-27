@@ -1,100 +1,51 @@
 import pygame 
+from load_file import * 
+from setting import *
 
 class Player(pygame.sprite.Sprite):
 	def __init__(self,pos):
 		super().__init__()
-		self.import_character_assets()
-		self.frame_index = 0
-		self.animation_speed = 0.15
-		self.image = self.animations['idle'][self.frame_index]
+		self.animation_speed = 0.15 # fast or slow -> slow motion
+		self.image = pygame.transform.scale(load_image('ball.png'), (24,24))
 		self.rect = self.image.get_rect(topleft = pos)
 
 		# player movement
 		self.direction = pygame.math.Vector2(0,0)
 		self.speed = 8
-		self.gravity = 0.8
-		self.jump_speed = -16
+		self.gravity = 0 #0.8
 
-		# player status
-		self.status = 'idle'
-		self.facing_right = True
-		self.on_ground = False
-		self.on_ceiling = False
-		self.on_left = False
-		self.on_right = False
+	def normalize(self):
+		if self.direction.x != 0 and self.direction.y != 0:
+			ss = (self.direction.x ** 2 + self.direction.y ** 2) ** 0.5
+			self.direction.x = self.direction.x / ss
+			self.direction.y = self.direction.y / ss
+		
 
-	def import_character_assets(self):
-		self.animations = {'idle':[],'run':[],'jump':[],'fall':[]}
+	def get_pos(self):
+		return self.pos
 
-		for animation in self.animations.keys():
-			img = pygame.Surface((50,50))
-			img.fill((255,255,0))
-			pygame.draw.rect(img,(11,11,11),(35,10,10,10))
-			self.animations[animation] = [img]
-
-	def animate(self):
-		animation = self.animations[self.status]
-
-		# loop over frame index 
-		self.frame_index += self.animation_speed
-		if self.frame_index >= len(animation):
-			self.frame_index = 0
-
-		image = animation[int(self.frame_index)]
-		if self.facing_right:
-			self.image = image
-		else:
-			flipped_image = pygame.transform.flip(image,True,False)
-			self.image = flipped_image
-
-		# set the rect
-		if self.on_ground and self.on_right:
-			self.rect = self.image.get_rect(bottomright = self.rect.bottomright)
-		elif self.on_ground and self.on_left:
-			self.rect = self.image.get_rect(bottomleft = self.rect.bottomleft)
-		elif self.on_ground:
-			self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
-		elif self.on_ceiling and self.on_right:
-			self.rect = self.image.get_rect(topright = self.rect.topright)
-		elif self.on_ceiling and self.on_left:
-			self.rect = self.image.get_rect(topleft = self.rect.topleft)
-		elif self.on_ceiling:
-			self.rect = self.image.get_rect(midtop = self.rect.midtop)
+	def move(self):
+		self.rect.x += self.direction.x * self.speed
+		self.rect.y += self.direction.y * self.speed
 
 	def get_input(self):
-		keys = pygame.key.get_pressed()
+		mouse_down = pygame.mouse.get_pressed()[0]
+		if mouse_down: #get the mouse position and change direction
+			mouse_pos = pygame.mouse.get_pos()
+			print(mouse_pos)
+			cenx = self.rect.centerx
+			ceny = self.rect.centery
 
-		if keys[pygame.K_RIGHT]:
-			self.direction.x = 1
-			self.facing_right = True
-		elif keys[pygame.K_LEFT]:
-			self.direction.x = -1
-			self.facing_right = False
-		else:
-			self.direction.x = 0
+			self.direction.x = mouse_pos[0] - cenx
+			self.direction.y = mouse_pos[1] - ceny
+			self.normalize()
 
-		if keys[pygame.K_SPACE] and self.on_ground:
-			self.jump()
-
-	def get_status(self):
-		if self.direction.y < 0:
-			self.status = 'jump'
-		elif self.direction.y > 1:
-			self.status = 'fall'
-		else:
-			if self.direction.x != 0:
-				self.status = 'run'
-			else:
-				self.status = 'idle'
 
 	def apply_gravity(self):
 		self.direction.y += self.gravity
 		self.rect.y += self.direction.y
 
-	def jump(self):
-		self.direction.y = self.jump_speed
-
 	def update(self):
 		self.get_input()
-		self.get_status()
-		self.animate()
+		self.move()
+	
