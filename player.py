@@ -3,6 +3,7 @@ from load_file import *
 from setting import *
 from tiles.Star import Star
 from tiles.Lava import Lava
+from tiles.Wall import Wall
 class PMoves:
 	def __init__(self):
 		self.flyToMouse = False
@@ -37,10 +38,11 @@ class Player(pygame.sprite.Sprite):
 			if isinstance(hit,Star):
 				self.addLife(20)
 				hit.kill()
-			if isinstance(hit,Lava):
+			elif isinstance(hit,Lava):
 				self.reduceLife(10)
 				self.v*=0.3
-				
+			elif isinstance(hit,Wall):
+				self.v*=0.7
 	def scroll(self, scroll):
 		self.pos.x -= scroll[0]
 		self.pos.y -= scroll[1]
@@ -64,7 +66,7 @@ class Player(pygame.sprite.Sprite):
 			self.v.x*=-0.4
 		
 		self.pos.y+=dy
-		self.rect.y=int(self.pos.y+dy)
+		self.rect.y=int(self.pos.y)
 		hits2 = pygame.sprite.spritecollide(self, self.game.tiles, False)
 		for hit in hits2:
 			if self.v.y > 0:
