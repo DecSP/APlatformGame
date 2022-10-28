@@ -26,6 +26,7 @@
 # S: Star
 # E: Enemy
 # B: Box
+import pygame
 
 level_map = [
 'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU',
@@ -45,3 +46,7 @@ item_size = 24
 tile_size = 64
 screen_width = 1200
 screen_height = len(level_map) * tile_size #704
+
+SLOMO_SPEED = 0.3
+
+vec=pygame.math.Vector2

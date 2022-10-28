@@ -16,7 +16,10 @@ def filename(name):
     filename = os.path.join(basedir, name)
     return filename
 
+img_memo={}
 def load_image(name, colorkey=None):
+    if name in img_memo:
+        return img_memo[name]
     fullname = os.path.join(filename(LOAD_DIR), name)
     image = pygame.image.load(fullname)
     if colorkey is not None:
@@ -26,6 +29,7 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey)
     else:
         image = image.convert_alpha()
+    img_memo[name]=image
     return image
 
 def load_sound(name):

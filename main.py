@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame
 from setting import * 
 from level import Level
 
@@ -10,15 +10,14 @@ clock = pygame.time.Clock()
 
 level = Level(level_map,screen)
 while True:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			pygame.quit()
-			sys.exit()
-	
 	screen.fill('black')
 	
 	# print("Start a game")
-	level.run()
+	level.process()
+	deltaTime=clock.tick(120)/1000.0
+	level.update(deltaTime)
+
 	# print("End a game")
 	pygame.display.update()
-	clock.tick(60)
+		
+		
