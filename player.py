@@ -4,6 +4,7 @@ from setting import *
 from tiles.Star import Star
 from tiles.Lava import Lava
 from tiles.Wall import Wall
+from sprites import CircleExplosion
 class PMoves:
 	def __init__(self):
 		self.flyToMouse = False
@@ -36,6 +37,9 @@ class Player(pygame.sprite.Sprite):
 	def collideOthers(self,allHits,delta):
 		for hit in allHits:
 			if isinstance(hit,Star):
+				self.game.particles.append(
+                    CircleExplosion(hit.rect.center, (255, 255, 50), 7, 100)
+                )
 				self.addLife(20)
 				hit.kill()
 			elif isinstance(hit,Lava):

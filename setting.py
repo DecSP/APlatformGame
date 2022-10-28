@@ -38,7 +38,7 @@ level_map = [
 'L                 S                 R',
 'L           S          S            R',
 'L                 P                 R',
-'L              WWWWWW               R',
+'L  WWWWW       WWWWWW      WWWW     R',
 'L                                   R',
 'L                                   R',
 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']

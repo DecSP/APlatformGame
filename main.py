@@ -10,7 +10,8 @@ clock = pygame.time.Clock()
 
 level = Level(level_map,screen)
 while True:
-	screen.fill('black')
+	# screen.fill('black')
+	level.draw_bg()
 	
 	# print("Start a game")
 	level.process()

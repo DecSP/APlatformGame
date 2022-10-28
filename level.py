@@ -1,3 +1,4 @@
+from random import randint
 import sys
 import pygame 
 from tiles.Box import Box
@@ -6,6 +7,7 @@ from tiles.Star import Star
 from tiles.Lava import Lava
 from setting import *
 from player import PMoves, Player
+from sprites import HealthBar
 
 class Level:
 	def __init__(self,level_data,surface):
@@ -16,6 +18,7 @@ class Level:
 		self.player = pygame.sprite.GroupSingle()
 		self.tiles = pygame.sprite.Group()
 		self.bullets = []
+		self.particles = []
 
 		self.playermoves = PMoves()
 		self.setup_level(level_data)
@@ -23,6 +26,7 @@ class Level:
 		self.game_over=False
 		
 		self.aim_fly = False
+		
 
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
@@ -47,6 +51,21 @@ class Level:
 				if cell == 'B':
 					box = Box((x,y),item_size,self)
 					self.tiles.add(box)
+		
+		self.bg_rects=[]
+		factor = 0.25
+		for i in range(3):
+			for _ in range(int(tile_size*len(layout[0]) / 80)):
+				self.bg_rects.append(
+					[
+						factor,
+						[
+							vec(randint(0, tile_size*len(layout[0])), randint(50, 150)),
+							vec(randint(20, 50), 300),
+						],
+					]
+				)
+			factor += 0.25
 
 
 	def scroll_world(self):
@@ -67,6 +86,10 @@ class Level:
 			sprites.rect.center -= vec(scroll)
 		for sprites in self.bullets:
 			sprites.pos -= vec(scroll)
+		for sprites in self.particles:
+			sprites.pos -= vec(scroll)
+		for rect in self.bg_rects:
+			rect[1][0] -= vec(scroll) * rect[0]
 
 	def process(self):
 		for event in pygame.event.get():
@@ -100,7 +123,10 @@ class Level:
 		for bullet in self.bullets:
 			bullet.update(delta)
 			bullet.draw(self.display_surface)
-
+		for particle in self.particles:
+			particle.update(delta, self.display_surface)
+			if particle.killed:
+				self.particles.remove(particle)
 		if self.game_over:
 			return
 
@@ -109,32 +135,15 @@ class Level:
 			player = self.player.sprite
 			px,py = player.rect.centerx, player.rect.centery
 			pygame.draw.line(self.display_surface,(255,255,255),(px,py),pygame.mouse.get_pos())
-			self.player.sprite.reduceLife(100*delta)
+			self.player.sprite.reduceLife(40*delta)
 		self.health_bar.update(self.display_surface,self.player.sprite.life)
+	
+	def draw_bg(self):
+		self.display_surface.fill((125, 18, 67))
+		for rect in self.bg_rects:
+			color = (85, 0, 35) if rect[0] == 0.75 else (99, 5, 47)
+			if rect[0] == 0.25:
+				color = (110, 16, 54)
+			pygame.draw.rect(self.display_surface, color, pygame.Rect(rect[1][0], rect[1][1]))
 
-class HealthBar:
-    def __init__(
-        self, pos, width, height, h_color=(205, 22, 22), o_color=(0, 0, 0), o_width=1
-    ):
-        self.pos = vec(pos)
-        self.width = width
-        self.init_width = width
-        self.height = height
-        self.h_color = h_color
-        self.o_color = o_color
-        self.o_width = o_width
-
-    def update(self, surface, percent):
-        pygame.draw.rect(
-            surface, (0, 0, 0), pygame.Rect(self.pos, (self.init_width, self.height))
-        )
-        pygame.draw.rect(
-            surface, self.h_color, pygame.Rect(self.pos, (self.init_width*percent/100, self.height))
-        )
-        pygame.draw.rect(
-            surface,
-            self.o_color,
-            pygame.Rect(self.pos, (self.init_width, self.height)),
-            self.o_width,
-        )
 
