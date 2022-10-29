@@ -50,7 +50,7 @@ class Star(Tile):
 	def __init__(self,pos,size,game):
 		super().__init__(pos,size,'star.png',game)
 		self.last_shot=0
-		self.range=[2000,5000]
+		self.range=[1000,2000]
 		self.shot_dur = randint(self.range[0], self.range[1])
 
 	def update(self,delta):

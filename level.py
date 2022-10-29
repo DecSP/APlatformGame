@@ -20,17 +20,20 @@ class Level:
 		self.bullets = []
 		self.particles = []
 
-		self.playermoves = PMoves()
+		self.world_shift = [0,0]
 		self.setup_level(level_data)
+
+		self.playermoves = PMoves()
 		self.health_bar = HealthBar([14, 5], 300, 20, [0, 200, 0])
 		self.game_over=False
 		
 		self.aim_fly = False
-		
 
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
 		offset_x = (player_pos[0] + tile_size/2 - screen_width / 2)
+		self.world_shift[0]=offset_x
+		self.world_size = [len(layout[0])*tile_size,len(layout)*tile_size]
 		for row_index,row in enumerate(layout):
 			for col_index,cell in enumerate(row):
 				x = col_index * tile_size - offset_x
@@ -55,16 +58,17 @@ class Level:
 		self.bg_rects=[]
 		factor = 0.25
 		for i in range(3):
-			for _ in range(int(tile_size*len(layout[0]) / 80)):
+			for _ in range(int(self.world_size[0] / 80)):
 				self.bg_rects.append(
 					[
 						factor,
 						[
-							vec(randint(0, tile_size*len(layout[0])), randint(50, 150)),
-							vec(randint(20, 50), 300),
+							vec(randint(0, self.world_size[0])-self.world_shift[0], randint(50, 150)),
+							vec(randint(30, 60), 500),
 						],
 					]
 				)
+				
 			factor += 0.25
 
 
@@ -80,6 +84,13 @@ class Level:
 		) / 20
 		scroll[0] = int(scroll[0])
 		scroll[1] = int(scroll[1])
+		if self.world_shift[0]+scroll[0]<0 or self.world_shift[0]+scroll[0]+self.display_surface.get_width()>self.world_size[0] :
+			scroll[0]=0
+		if self.world_shift[1]+scroll[1]<0 or self.world_shift[1]+scroll[1]+self.display_surface.get_height()>self.world_size[1] :
+			scroll[1]=0
+		
+		self.world_shift[0]+=scroll[0]
+		self.world_shift[1]+=scroll[1]
 
 		player.scroll(scroll)
 		for sprites in self.tiles:
@@ -90,6 +101,7 @@ class Level:
 			sprites.pos -= vec(scroll)
 		for rect in self.bg_rects:
 			rect[1][0] -= vec(scroll) * rect[0]
+		
 
 	def process(self):
 		for event in pygame.event.get():
@@ -139,11 +151,11 @@ class Level:
 		self.health_bar.update(self.display_surface,self.player.sprite.life)
 	
 	def draw_bg(self):
-		self.display_surface.fill((125, 18, 67))
+		self.display_surface.fill((0xfd,0x5c,0x63))
 		for rect in self.bg_rects:
-			color = (85, 0, 35) if rect[0] == 0.75 else (99, 5, 47)
+			color = (0x9e,0x1b,0x32)  if rect[0] == 0.75 else (0xC4,0x1E,0x3A)
 			if rect[0] == 0.25:
-				color = (110, 16, 54)
+				color = (0xE5,0x2B,0x50)
 			pygame.draw.rect(self.display_surface, color, pygame.Rect(rect[1][0], rect[1][1]))
 
 
