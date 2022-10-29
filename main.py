@@ -1,6 +1,5 @@
 import pygame
 from setting import * 
-from level import Level
 
 # Pygame setup
 pygame.init()
@@ -8,9 +7,9 @@ pygame.init()
 screen = pygame.display.set_mode((screen_width,screen_height))
 clock = pygame.time.Clock()
 
+from level import Level
 level = Level(level_map,screen)
 while True:
-	# screen.fill('black')
 	level.draw_bg()
 	
 	# print("Start a game")

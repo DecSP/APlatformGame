@@ -1,9 +1,10 @@
 from random import randint
 import sys
-import pygame 
-from tiles.Box import Box
+import pygame
+from load_file import load_image 
+from tiles.Item import Box,Star
 from tiles.Wall import Wall
-from tiles.Star import Star
+from tiles.Enemy import Bird
 from tiles.Lava import Lava
 from setting import *
 from player import PMoves, Player
@@ -17,6 +18,8 @@ class Level:
 		self.display_surface = surface 
 		self.player = pygame.sprite.GroupSingle()
 		self.tiles = pygame.sprite.Group()
+		self.playerColliders = pygame.sprite.Group()
+		self.playerGathers = pygame.sprite.Group()
 		self.bullets = []
 		self.particles = []
 
@@ -24,7 +27,7 @@ class Level:
 		self.setup_level(level_data)
 
 		self.playermoves = PMoves()
-		self.health_bar = HealthBar([14, 5], 300, 20, [0, 200, 0])
+		self.health_bar = HealthBar(self.player.sprite,[14, 5], 300, 20, [0, 200, 0])
 		self.game_over=False
 		
 		self.aim_fly = False
@@ -42,34 +45,46 @@ class Level:
 				if cell == 'P':
 					player_sprite = Player((x,y),self)
 					self.player.add(player_sprite)
-				if cell == 'X':
+				elif cell == 'X':
 					lava = Lava((x,y),tile_size,self)
 					self.tiles.add(lava)
-				if cell == 'W':
+					self.playerColliders.add(lava)
+				elif cell == 'W':
 					brick = Wall((x,y),tile_size,self)
 					self.tiles.add(brick)
-				if cell == 'S':
+					self.playerColliders.add(brick)
+				elif cell == 'E':
+					bird = Bird((x,y),self)
+					self.tiles.add(bird)
+					self.playerColliders.add(bird)
+				elif cell == 'S':
 					star = Star((x,y),item_size,self)
 					self.tiles.add(star)
-				if cell == 'B':
+					self.playerGathers.add(star)
+				elif cell == 'B':
 					box = Box((x,y),item_size,self)
 					self.tiles.add(box)
+					self.playerGathers.add(box)
 		
 		self.bg_rects=[]
-		factor = 0.25
-		for i in range(3):
-			for _ in range(int(self.world_size[0] / 80)):
+		factor = 1/4
+		for i in range(4,0,-1):
+			bgimg = load_image("bg/%s.png"%(str(i).zfill(2)))
+			scale = self.world_size[1]/ bgimg.get_height()
+			bgimg = pygame.transform.scale(bgimg,(scale*bgimg.get_width(),scale*bgimg.get_height()))
+
+			for j in range((self.world_size[0]+bgimg.get_width()-1)//(bgimg.get_width())):
 				self.bg_rects.append(
 					[
 						factor,
 						[
-							vec(randint(0, self.world_size[0])-self.world_shift[0], randint(50, 150)),
-							vec(randint(30, 60), 500),
+							bgimg,
+							vec([j*bgimg.get_width()-offset_x,0]),
 						],
 					]
 				)
 				
-			factor += 0.25
+			factor += 1/4
 
 
 	def scroll_world(self):
@@ -100,7 +115,7 @@ class Level:
 		for sprites in self.particles:
 			sprites.pos -= vec(scroll)
 		for rect in self.bg_rects:
-			rect[1][0] -= vec(scroll) * rect[0]
+			rect[1][1] -= vec(scroll) * rect[0]
 		
 
 	def process(self):
@@ -140,6 +155,9 @@ class Level:
 			if particle.killed:
 				self.particles.remove(particle)
 		if self.game_over:
+			bgimg = load_image("game_over.png")
+			bgimg = pygame.transform.scale(bgimg,(screen_width,screen_height))
+			self.display_surface.blit(bgimg,(0,0))
 			return
 
 		# aim
@@ -148,14 +166,10 @@ class Level:
 			px,py = player.rect.centerx, player.rect.centery
 			pygame.draw.line(self.display_surface,(255,255,255),(px,py),pygame.mouse.get_pos())
 			self.player.sprite.reduceLife(40*delta)
-		self.health_bar.update(self.display_surface,self.player.sprite.life)
+		self.health_bar.update(self.display_surface)
 	
 	def draw_bg(self):
-		self.display_surface.fill((0xfd,0x5c,0x63))
 		for rect in self.bg_rects:
-			color = (0x9e,0x1b,0x32)  if rect[0] == 0.75 else (0xC4,0x1E,0x3A)
-			if rect[0] == 0.25:
-				color = (0xE5,0x2B,0x50)
-			pygame.draw.rect(self.display_surface, color, pygame.Rect(rect[1][0], rect[1][1]))
+			self.display_surface.blit(rect[1][0],rect[1][1])
 
 
