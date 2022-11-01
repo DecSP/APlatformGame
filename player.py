@@ -5,6 +5,7 @@ from tiles.Enemy import Bird
 from tiles.Item import Box, Star
 from tiles.Lava import Lava
 from tiles.Wall import Wall
+from tiles.Thorn import Thorn
 from sprites import CircleExplosion
 from util import import_folder
 class PMoves:
@@ -28,7 +29,6 @@ class Player(pygame.sprite.Sprite):
 
 		self.animation_speed = 6
 		self.frameIdx = 0
-		self.on_ground = False
 
 	def initImg(self):
 		images=import_folder("data/player")
@@ -69,8 +69,11 @@ class Player(pygame.sprite.Sprite):
 				self.extendLife(30)
 				hit.kill()
 			elif isinstance(hit,Lava):
-				self.reduceLife(10)
+				self.reduceLife(15)
 				self.v*=0.3
+			elif isinstance(hit,Thorn):
+				self.reduceLife(10)
+				self.v*=0.8
 			elif isinstance(hit,Wall):
 				self.v*=0.7
 	def scroll(self, scroll):

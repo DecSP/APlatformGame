@@ -6,6 +6,7 @@ from tiles.Item import Box,Star
 from tiles.Wall import Wall
 from tiles.Enemy import Bird
 from tiles.Lava import Lava
+from tiles.Thorn import Thorn
 from setting import *
 from player import PMoves, Player
 from sprites import HealthBar
@@ -31,6 +32,29 @@ class Level:
 		self.game_over=False
 		
 		self.aim_fly = False
+		self.cooldown_star = max_cooldown_star
+		self.cooldown_bird = max_cooldown_bird
+
+	def generate_star(self):
+		star = Star((randint(0,self.world_size[0]-tile_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-tile_size)-self.world_shift[1]),
+					item_size,
+					self)
+		identical = pygame.sprite.spritecollide(star, self.tiles, False)
+		if len(identical) == 0:
+			# print("New star is created at ({},{})".format(star.rect.left,star.rect.top))
+			self.tiles.add(star)
+			self.playerGathers.add(star)
+
+	def generate_bird(self):
+		bird = Bird((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+					self)
+		identical = pygame.sprite.spritecollide(bird, self.tiles, False)
+		if len(identical) == 0:
+			# print("New bird is created at ({},{})".format(bird.rect.left,bird.rect.top))
+			self.tiles.add(bird)
+			self.playerColliders.add(bird)
 
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
@@ -49,6 +73,10 @@ class Level:
 					lava = Lava((x,y),tile_size,self)
 					self.tiles.add(lava)
 					self.playerColliders.add(lava)
+				elif cell in ['U','L','R']:
+					thorn = Thorn((x,y),tile_size,self,cell)
+					self.tiles.add(thorn)
+					self.playerColliders.add(thorn)
 				elif cell == 'W':
 					brick = Wall((x,y),tile_size,self)
 					self.tiles.add(brick)
@@ -136,9 +164,24 @@ class Level:
 		self.scroll_world()
 
 	def update(self,delta):
+		# print(self.world_shift)
 		if self.aim_fly:
 			delta = delta * SLOMO_SPEED
 
+		# Cooldown + Generate star
+		self.cooldown_star -= delta
+		if self.cooldown_star <= 0:
+			self.cooldown_star = max_cooldown_star
+			for i in range(number_star_generated):
+				self.generate_star()
+		
+		# Cooldown + Generate bird
+		self.cooldown_bird -= delta
+		if self.cooldown_bird <= 0:
+			self.cooldown_bird = max_cooldown_bird
+			for i in range(number_bird_generated):
+				self.generate_bird()
+		
 		# player
 		if not self.game_over:
 			self.player.update(delta,self.playermoves)
