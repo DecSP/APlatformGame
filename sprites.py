@@ -27,6 +27,18 @@ class HealthBar:
             self.o_width,
         )
 
+class Timer: 
+    def __init__(self, pos, game):
+        self.pos = pos
+        self.game = game
+        self.time = 0
+
+    def update(self, surface):
+        self.time += self.game.delta
+        self.font = pygame.font.SysFont("Arial", 30, bold=True)
+        self.text = self.font.render("Time: {}s".format(int(self.time)), True, "RED")
+        surface.blit(self.text, self.pos)
+
 class CircleExplosion:
     def __init__(
         self, pos, color, initial_width, radius_increment=3, lighting_color=None

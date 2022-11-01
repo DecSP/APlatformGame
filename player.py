@@ -56,23 +56,25 @@ class Player(pygame.sprite.Sprite):
                     CircleExplosion(hit.rect.center, (50, 50, 255), 7, 100)
                 )
 				hit.kill()
+				self.addLife(20)
 			elif isinstance(hit,Star):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (255, 255, 50), 7, 100)
                 )
-				self.addLife(20)
+				self.addLife(30)
 				hit.kill()
 			elif isinstance(hit,Box):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (50, 255, 50), 7, 100)
                 )
 				self.extendLife(30)
+				self.addLife(30)
 				hit.kill()
 			elif isinstance(hit,Lava):
-				self.reduceLife(15)
+				self.reduceLife(20)
 				self.v*=0.3
 			elif isinstance(hit,Thorn):
-				self.reduceLife(10)
+				self.reduceLife(15)
 				self.v*=0.8
 			elif isinstance(hit,Wall):
 				self.v*=0.7
