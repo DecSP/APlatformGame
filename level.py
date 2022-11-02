@@ -98,6 +98,25 @@ class Level:
 			self.tiles.add(bird)
 			self.playerColliders.add(bird)
 
+	def generate_box(self):
+		box = Box((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+					item_size,
+					self)
+		identical = pygame.sprite.spritecollide(box, self.tiles, False)
+		if len(identical) == 0:
+			# print("New box is created at ({},{})".format(bird.rect.left,bird.rect.top))
+			self.tiles.add(box)
+			self.playerGathers.add(box)
+
+	def set_screen(self):
+		"""Sets (resets) the self.screen variable with the proper fullscreen"""
+		if conf.fullscreen:
+			fullscreen = pygame.FULLSCREEN | pygame.SCALED
+		else:
+			fullscreen = 0
+		self.screen = pygame.display.set_mode((WIDTH, HEIGHT), fullscreen)
+
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
 		offset_x = (player_pos[0] + tile_size/2 - screen_width / 2)
@@ -242,6 +261,13 @@ class Level:
 					x.die()
 				self.generate_bird(cnt*2)
 		
+		# Cooldown + Generate box
+		self.cooldown_box -= delta
+		if self.cooldown_box <= 0:
+			self.cooldown_box = max_cooldown_box
+			for i in range(number_box_generated):
+				self.generate_bird()
+
 		# player
 		if not self.game_over:
 			self.player.update(delta,self.playermoves)
