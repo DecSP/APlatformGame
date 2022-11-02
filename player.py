@@ -62,7 +62,7 @@ class Player(pygame.sprite.Sprite):
 				hit.reduceLife(1)
 				sound.play('explode')
 				if hit.life == 0: 
-					self.game.score.score+=1
+					self.game.score.score+=hit.max_life
 					hit.die()
 			elif isinstance(hit,Star):
 				self.game.particles.append(
@@ -111,7 +111,7 @@ class Player(pygame.sprite.Sprite):
 				self.rect.x=self.pos.x
 			else: self.pos.x = self.rect.x
 		if len(hits):
-			self.v.x*=-0.7
+			self.v.x*=-0.6
 		
 		self.pos.y+=dy
 		self.rect.y=int(self.pos.y)
@@ -125,7 +125,7 @@ class Player(pygame.sprite.Sprite):
 				self.rect.y=self.pos.y
 			else:self.pos.y = self.rect.y
 		if len(hits2):
-			self.v.y*=-0.7
+			self.v.y*=-0.6
 		
 		
 		allHits=hits+hits2+pygame.sprite.spritecollide(self,self.game.playerGathers,False)

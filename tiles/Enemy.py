@@ -101,12 +101,13 @@ class Bird(Enemy):
 		self.frameIdx += delta*self.animation_speed
 		while self.frameIdx >= len(birdImgs[0]):
 			self.frameIdx-=len(birdImgs[0])
-		self.image=birdImgs[ppos[0]>self.rect.centerx][int(self.frameIdx)]
+		X=255*self.last_shot/self.shot_dur
+		self.image=changeColor(birdImgs[ppos[0]>self.rect.centerx][int(self.frameIdx)],(255,255-X,255-X,100))
 
 	def update(self,delta):
 		self.last_shot+=delta*1000
 		self.rect.center = self.pos
-		if (self.game.player.sprite.pos - self.pos).length() < 2000:
+		if (self.game.player.sprite.pos - self.pos).length() < 1500:
 			self.pos.x += (-self.pos.x + self.game.player.sprite.rect.centerx) / 80
 			self.rect.center = self.pos
 		if self.last_shot > self.shot_dur:
@@ -156,14 +157,15 @@ class Boss(Enemy):
 		self.frameIdx += delta*self.animation_speed
 		while self.frameIdx >= len(bossImgs[0]):
 			self.frameIdx-=len(bossImgs[0])
-		X= 255 - 255/self.max_life*self.life
-		color =(255,X,X,100)
+		X= max(1-self.life/self.max_life,0.1)
+		Y =255*self.last_shot/self.shot_dur
+		color =(255*X,(255-Y)*X,(255-Y)*X,100)
 		self.image=changeColor(bossImgs[ppos[0]>self.rect.centerx][int(self.frameIdx)],color)
 
 	def update(self,delta):
 		self.last_shot+=delta*1000
 		self.rect.center = self.pos
-		if (self.game.player.sprite.pos - self.pos).length() < 2000:
+		if 300<(self.game.player.sprite.pos - self.pos).length() < 1500:
 			self.pos.x += (-self.pos.x + self.game.player.sprite.rect.centerx) / 80
 			self.pos.y += (-self.pos.y + self.game.player.sprite.rect.centery) / 80
 			self.rect.center = self.pos

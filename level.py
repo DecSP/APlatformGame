@@ -73,8 +73,8 @@ class Level:
 	# 	pass
 
 	def generate_star(self):
-		star = Star((randint(0,self.world_size[0]-tile_size)-self.world_shift[0],
-					randint(0,self.world_size[1]-tile_size)-self.world_shift[1]),
+		star = Star((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
+					randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
 					item_size,
 					self)
 		identical = pygame.sprite.spritecollide(star, self.tiles, False)
@@ -85,8 +85,8 @@ class Level:
 
 	def generate_bird(self,boss=0):
 		if not boss:
-			bird = Bird((randint(tile_size,self.world_size[0]-tile_size)-self.world_shift[0],
-					randint(tile_size,self.world_size[1]-tile_size)-self.world_shift[1]),
+			bird = Bird((randint(tile_size*1.5,self.world_size[0]-tile_size*1.5)-self.world_shift[0],
+					randint(tile_size*1.5,self.world_size[1]-tile_size*1.5)-self.world_shift[1]),
 					self)
 		else:
 			bird = Boss((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
@@ -240,7 +240,7 @@ class Level:
 			else:
 				for x in lbird:
 					x.die()
-				self.generate_bird(cnt*3)
+				self.generate_bird(cnt*2)
 		
 		# player
 		if not self.game_over:
