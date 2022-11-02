@@ -54,21 +54,16 @@ class Player(pygame.sprite.Sprite):
 	def collideOthers(self,allHits,delta):
 		for hit in allHits:
 			if isinstance(hit,Bird):
-				self.game.particles.append(
-                    CircleExplosion(hit.rect.center, (50, 50, 255), 7, 100)
-                )
-				hit.kill()
 				sound.play('explode')
+				hit.die()
+				self.game.score.score+=1
 				self.addLife(20)
 			if isinstance(hit,Boss):
-				hit.reduceLife(20)
+				hit.reduceLife(1)
 				sound.play('explode')
 				if hit.life == 0: 
-					sound.play('boss_die')
-					self.game.particles.append(
-						CircleExplosion(hit.rect.center, (50, 50, 255), 7, 100)
-					)
-					hit.kill()
+					self.game.score.score+=1
+					hit.die()
 			elif isinstance(hit,Star):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (255, 255, 50), 7, 100)
@@ -112,9 +107,11 @@ class Player(pygame.sprite.Sprite):
 				self.rect.right = hit.rect.left
 			if self.v.x < 0:
 				self.rect.left = hit.rect.right
-			self.pos.x = self.rect.x
+			if abs(self.pos.x-self.rect.x)>50:
+				self.rect.x=self.pos.x
+			else: self.pos.x = self.rect.x
 		if len(hits):
-			self.v.x*=-0.4
+			self.v.x*=-0.7
 		
 		self.pos.y+=dy
 		self.rect.y=int(self.pos.y)
@@ -124,9 +121,11 @@ class Player(pygame.sprite.Sprite):
 				self.rect.bottom = hit.rect.top
 			if self.v.y < 0:
 				self.rect.top = hit.rect.bottom
-			self.pos.y = self.rect.y
+			if abs(self.pos.y-self.rect.y)>50:
+				self.rect.y=self.pos.y
+			else:self.pos.y = self.rect.y
 		if len(hits2):
-			self.v.y*=-0.4
+			self.v.y*=-0.7
 		
 		
 		allHits=hits+hits2+pygame.sprite.spritecollide(self,self.game.playerGathers,False)

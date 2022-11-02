@@ -2,6 +2,7 @@ from random import randint
 import pygame 
 from Tile import *
 from setting import *
+from sprites import CircleExplosion
 from tiles.Wall import Wall
 from sound import sound
 
@@ -89,7 +90,11 @@ class Bird(Enemy):
 		self.animation_speed = 10
 		self.frameIdx = 0
 
-
+	def die(self):
+		self.game.particles.append(
+			CircleExplosion(self.rect.center, (50, 50, 255), 7, 100)
+		)
+		self.kill()
 
 	def animate(self,delta):
 		ppos = self.game.player.sprite.pos
@@ -121,12 +126,12 @@ class Bird(Enemy):
 
 bossImgs = initImage(True)
 class Boss(Enemy):
-	def __init__(self,pos,game):
+	def __init__(self,pos,game,life):
 		pygame.sprite.Sprite.__init__(self)
 		self.pos=vec(pos)
 		self.game=game
 		self.image=bossImgs[0][0]
-		self.life = 100
+		self.life = self.max_life = life
 		self.rect = self.image.get_rect(topleft = pos)
 		self.last_shot=0
 		self.range=[2000,5000]
@@ -139,12 +144,19 @@ class Boss(Enemy):
 		self.life -= x
 		self.life = max(0,self.life)
 
+	def die(self):
+		sound.play('boss_die')
+		self.game.particles.append(
+			CircleExplosion(self.rect.center, (50, 50, 255), 7, 100)
+		)
+		self.kill()
+
 	def animate(self,delta):
 		ppos = self.game.player.sprite.pos
 		self.frameIdx += delta*self.animation_speed
 		while self.frameIdx >= len(bossImgs[0]):
 			self.frameIdx-=len(bossImgs[0])
-		X= 255 - 255/100*self.life
+		X= 255 - 255/self.max_life*self.life
 		color =(255,X,X,100)
 		self.image=changeColor(bossImgs[ppos[0]>self.rect.centerx][int(self.frameIdx)],color)
 
@@ -153,6 +165,7 @@ class Boss(Enemy):
 		self.rect.center = self.pos
 		if (self.game.player.sprite.pos - self.pos).length() < 2000:
 			self.pos.x += (-self.pos.x + self.game.player.sprite.rect.centerx) / 80
+			self.pos.y += (-self.pos.y + self.game.player.sprite.rect.centery) / 80
 			self.rect.center = self.pos
 		if self.last_shot > self.shot_dur:
 			self.last_shot = 0

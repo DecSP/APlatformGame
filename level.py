@@ -9,7 +9,7 @@ from tiles.Lava import Lava
 from tiles.Thorn import Thorn
 from setting import *
 from player import PMoves, Player
-from sprites import HealthBar, Timer
+from sprites import HealthBar, Score, Timer
 from config import conf
 from sound import sound
 
@@ -32,6 +32,7 @@ class Level:
 		self.playermoves = PMoves()
 		self.health_bar = HealthBar(self.player.sprite,[14, 5], 300, 20, [0, 200, 0])
 		self.timer = Timer([14, 30], self)
+		self.score = Score([14, 70], self)
 		self.game_over=False
 		
 		self.aim_fly = False
@@ -82,7 +83,7 @@ class Level:
 			self.tiles.add(star)
 			self.playerGathers.add(star)
 
-	def generate_bird(self,boss=False):
+	def generate_bird(self,boss=0):
 		if not boss:
 			bird = Bird((randint(tile_size,self.world_size[0]-tile_size)-self.world_shift[0],
 					randint(tile_size,self.world_size[1]-tile_size)-self.world_shift[1]),
@@ -90,7 +91,7 @@ class Level:
 		else:
 			bird = Boss((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
 				randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
-				self)
+				self,boss)
 		identical = pygame.sprite.spritecollide(bird, self.player, False)
 		if len(identical) == 0:
 			# print("New bird is created at ({},{})".format(bird.rect.left,bird.rect.top))
@@ -238,8 +239,8 @@ class Level:
 					self.generate_bird()
 			else:
 				for x in lbird:
-					x.kill()
-				self.generate_bird(True)
+					x.die()
+				self.generate_bird(cnt*3)
 		
 		# player
 		if not self.game_over:
@@ -270,6 +271,7 @@ class Level:
 			self.player.sprite.reduceLife(40*delta)
 		self.health_bar.update(self.display_surface)
 		self.timer.update(self.display_surface)
+		self.score.update(self.display_surface)
 	
 	def draw_bg(self):
 		for rect in self.bg_rects:
