@@ -6,6 +6,7 @@ from tiles.Item import Box, Star
 from tiles.Lava import Lava
 from tiles.Thorn import Thorn
 from tiles.Wall import Wall
+from tiles.Thorn import Thorn
 from sprites import CircleExplosion
 from util import import_folder
 from sound import sound
@@ -30,7 +31,6 @@ class Player(pygame.sprite.Sprite):
 
 		self.animation_speed = 6
 		self.frameIdx = 0
-		self.on_ground = False
 
 	def initImg(self):
 		images=import_folder("data/player")

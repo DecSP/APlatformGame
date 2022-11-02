@@ -6,6 +6,7 @@ from tiles.Item import Box,Star
 from tiles.Wall import Wall
 from tiles.Enemy import Bird,Enemy,Boss
 from tiles.Lava import Lava
+from tiles.Thorn import Thorn
 from setting import *
 from player import PMoves, Player
 from sprites import HealthBar, Timer
@@ -83,37 +84,18 @@ class Level:
 
 	def generate_bird(self,boss=False):
 		if not boss:
-			bird = Bird((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
-					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+			bird = Bird((randint(tile_size,self.world_size[0]-tile_size)-self.world_shift[0],
+					randint(tile_size,self.world_size[1]-tile_size)-self.world_shift[1]),
 					self)
 		else:
-			bird = Boss((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
-				randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+			bird = Boss((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
+				randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
 				self)
 		identical = pygame.sprite.spritecollide(bird, self.player, False)
 		if len(identical) == 0:
 			# print("New bird is created at ({},{})".format(bird.rect.left,bird.rect.top))
 			self.tiles.add(bird)
 			self.playerColliders.add(bird)
-
-	def generate_box(self):
-		box = Box((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
-					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
-					item_size,
-					self)
-		identical = pygame.sprite.spritecollide(box, self.tiles, False)
-		if len(identical) == 0:
-			# print("New box is created at ({},{})".format(bird.rect.left,bird.rect.top))
-			self.tiles.add(box)
-			self.playerGathers.add(box)
-
-	def set_screen(self):
-		"""Sets (resets) the self.screen variable with the proper fullscreen"""
-		if conf.fullscreen:
-			fullscreen = pygame.FULLSCREEN | pygame.SCALED
-		else:
-			fullscreen = 0
-		self.screen = pygame.display.set_mode((WIDTH, HEIGHT), fullscreen)
 
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
@@ -132,6 +114,10 @@ class Level:
 					lava = Lava((x,y),tile_size,self)
 					self.tiles.add(lava)
 					self.playerColliders.add(lava)
+				elif cell in ['U','L','R']:
+					thorn = Thorn((x,y),tile_size,self,cell)
+					self.tiles.add(thorn)
+					self.playerColliders.add(thorn)
 				elif cell == 'W':
 					brick = Wall((x,y),tile_size,self)
 					self.tiles.add(brick)
@@ -255,13 +241,6 @@ class Level:
 					x.kill()
 				self.generate_bird(True)
 		
-		# Cooldown + Generate box
-		self.cooldown_box -= delta
-		if self.cooldown_box <= 0:
-			self.cooldown_box = max_cooldown_box
-			for i in range(number_box_generated):
-				self.generate_bird()
-
 		# player
 		if not self.game_over:
 			self.player.update(delta,self.playermoves)
