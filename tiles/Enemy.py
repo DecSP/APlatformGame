@@ -3,13 +3,15 @@ import pygame
 from Tile import *
 from setting import *
 from tiles.Wall import Wall
+from sound import sound
 
 class Enemy(pygame.sprite.Sprite):
     pass
 
 class EnemyBullet:
-	def __init__(self, game, vector, pos):
+	def __init__(self, game, vector, pos,color = (100,100,255)):
 		self.game = game
+		self.color = color
 		try:
 			self.vector = vector.normalize()
 		except:
@@ -45,12 +47,23 @@ class EnemyBullet:
 
 	def draw(self, surface):
 		pygame.draw.line(
-			surface, (255, 255, 50), self.pos, self.pos + self.vector * 20, 3
+			surface, self.color, self.pos, self.pos + self.vector * 30, 4
 		)
 
-def initImage():
+def changeColor(image, color):
+	colouredImage = pygame.Surface(image.get_size())
+	colouredImage.fill(color)
+
+	finalImage = image.copy()
+	finalImage.blit(colouredImage, (0, 0), special_flags = pygame.BLEND_MULT)
+	return finalImage
+
+def initImage(boss=False):
 	img=pygame.transform.scale2x(load_image("bird.png"))
 	swidth = 64
+	if boss:
+		img=pygame.transform.scale2x(img)
+		swidth = 128
 	images=[]
 	for i in range(img.get_width()//swidth):
 		surf=pygame.Surface((swidth,swidth))
@@ -65,12 +78,12 @@ birdImgs = initImage()
 class Bird(Enemy):
 	def __init__(self,pos,game):
 		pygame.sprite.Sprite.__init__(self)
-		self.pos=pos
+		self.pos=vec(pos)
 		self.game=game
 		self.image=birdImgs[0][0]
 		self.rect = self.image.get_rect(topleft = pos)
 		self.last_shot=0
-		self.range=[1000,2000]
+		self.range=[2000,5000]
 		self.shot_dur = randint(self.range[0], self.range[1])
 
 		self.animation_speed = 10
@@ -87,17 +100,72 @@ class Bird(Enemy):
 
 	def update(self,delta):
 		self.last_shot+=delta*1000
+		self.rect.center = self.pos
+		if (self.game.player.sprite.pos - self.pos).length() < 2000:
+			self.pos.x += (-self.pos.x + self.game.player.sprite.rect.centerx) / 80
+			self.rect.center = self.pos
 		if self.last_shot > self.shot_dur:
 			self.last_shot = 0
 			self.shot_dur = randint(self.range[0], self.range[1])
-			self.game.bullets.append(
-				EnemyBullet(
-					self.game,
-					(
-						vec(self.game.player.sprite.rect.center)
-						- vec(self.rect.center)
-					).rotate(randint(-10, 10)),
-					vec(self.rect.center),
+			v=vec(self.game.player.sprite.rect.center)- vec(self.rect.center)
+			if v.length()<2000:
+				sound.play('fireball')
+				self.game.bullets.append(
+					EnemyBullet(
+						self.game,
+						v.rotate(randint(-10, 10)),
+						vec(self.rect.center),
+					)
 				)
-			)
+		self.animate(delta)
+
+bossImgs = initImage(True)
+class Boss(Enemy):
+	def __init__(self,pos,game):
+		pygame.sprite.Sprite.__init__(self)
+		self.pos=vec(pos)
+		self.game=game
+		self.image=bossImgs[0][0]
+		self.life = 100
+		self.rect = self.image.get_rect(topleft = pos)
+		self.last_shot=0
+		self.range=[2000,5000]
+		self.shot_dur = randint(self.range[0], self.range[1])
+
+		self.animation_speed = 10
+		self.frameIdx = 0
+
+	def reduceLife(self,x):
+		self.life -= x
+		self.life = max(0,self.life)
+
+	def animate(self,delta):
+		ppos = self.game.player.sprite.pos
+		self.frameIdx += delta*self.animation_speed
+		while self.frameIdx >= len(bossImgs[0]):
+			self.frameIdx-=len(bossImgs[0])
+		X= 255 - 255/100*self.life
+		color =(255,X,X,100)
+		self.image=changeColor(bossImgs[ppos[0]>self.rect.centerx][int(self.frameIdx)],color)
+
+	def update(self,delta):
+		self.last_shot+=delta*1000
+		self.rect.center = self.pos
+		if (self.game.player.sprite.pos - self.pos).length() < 2000:
+			self.pos.x += (-self.pos.x + self.game.player.sprite.rect.centerx) / 80
+			self.rect.center = self.pos
+		if self.last_shot > self.shot_dur:
+			self.last_shot = 0
+			self.shot_dur = randint(1100, 4000)
+			v=vec(self.game.player.sprite.rect.center)- vec(self.rect.center)
+			n=randint(10,30)
+			for j in range(n):
+				self.game.bullets.append(
+					EnemyBullet(
+						self.game,
+						v.rotate(360/n*j),
+						vec(self.rect.center),
+						(255,0,0)
+					)
+				)
 		self.animate(delta)

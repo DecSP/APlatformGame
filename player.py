@@ -1,12 +1,14 @@
 import pygame 
 from load_file import * 
 from setting import *
-from tiles.Enemy import Bird
+from tiles.Enemy import Bird, Boss
 from tiles.Item import Box, Star
 from tiles.Lava import Lava
+from tiles.Thorn import Thorn
 from tiles.Wall import Wall
 from sprites import CircleExplosion
 from util import import_folder
+from sound import sound
 class PMoves:
 	def __init__(self):
 		self.flyToMouse = False
@@ -56,21 +58,40 @@ class Player(pygame.sprite.Sprite):
                     CircleExplosion(hit.rect.center, (50, 50, 255), 7, 100)
                 )
 				hit.kill()
+				sound.play('explode')
+				self.addLife(20)
+			if isinstance(hit,Boss):
+				hit.reduceLife(20)
+				sound.play('explode')
+				if hit.life == 0: 
+					sound.play('boss_die')
+					self.game.particles.append(
+						CircleExplosion(hit.rect.center, (50, 50, 255), 7, 100)
+					)
+					hit.kill()
 			elif isinstance(hit,Star):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (255, 255, 50), 7, 100)
                 )
-				self.addLife(20)
+				self.addLife(30)
+				sound.play('item')
 				hit.kill()
 			elif isinstance(hit,Box):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (50, 255, 50), 7, 100)
                 )
 				self.extendLife(30)
+				self.addLife(30)
+				sound.play('upgrade')
 				hit.kill()
 			elif isinstance(hit,Lava):
-				self.reduceLife(10)
+				self.reduceLife(20)
+				sound.play('hurt')
 				self.v*=0.3
+			elif isinstance(hit,Thorn):
+				self.reduceLife(15)
+				sound.play('hurt')
+				self.v*=0.8
 			elif isinstance(hit,Wall):
 				self.v*=0.7
 	def scroll(self, scroll):
@@ -140,6 +161,8 @@ class Player(pygame.sprite.Sprite):
 	def update(self,delta,playermoves:PMoves):
 		if self.life == 0:
 			print("GAME OVER")
+			sound.play('die')
+			sound.play('gameover')
 			self.game.particles.append(
                     CircleExplosion(self.rect.center, (255, 50, 50), 7, 100)
                 )
@@ -147,6 +170,7 @@ class Player(pygame.sprite.Sprite):
 			return
 		if playermoves.flyToMouse:
 			self.flyToMouse()
+			sound.play('swoosh')
 			playermoves.flyToMouse=False
 		self.apply_gravity(delta)
 		self.move(delta)

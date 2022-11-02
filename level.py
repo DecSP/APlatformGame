@@ -4,11 +4,13 @@ import pygame
 from load_file import load_image 
 from tiles.Item import Box,Star
 from tiles.Wall import Wall
-from tiles.Enemy import Bird
+from tiles.Enemy import Bird,Enemy,Boss
 from tiles.Lava import Lava
 from setting import *
 from player import PMoves, Player
-from sprites import HealthBar
+from sprites import HealthBar, Timer
+from config import conf
+from sound import sound
 
 class Level:
 	def __init__(self,level_data,surface):
@@ -28,9 +30,90 @@ class Level:
 
 		self.playermoves = PMoves()
 		self.health_bar = HealthBar(self.player.sprite,[14, 5], 300, 20, [0, 200, 0])
+		self.timer = Timer([14, 30], self)
 		self.game_over=False
 		
 		self.aim_fly = False
+		self.cooldown_star = max_cooldown_star
+		self.cooldown_bird = max_cooldown_bird
+		self.cooldown_box = max_cooldown_box
+
+		self.clock = pygame.time.Clock()
+		self.is_exit = False
+
+	def play(self):
+		# Display the menu
+		
+		while True:
+			self.draw_bg()
+		
+			# print("Start a game")
+			self.process()
+			deltaTime=self.clock.tick(120)/1000.0
+			if not self.game_over:
+				self.update(deltaTime)
+				
+			else:
+				bgimg = load_image("game_over.png")
+				sound.stop('music')
+				bgimg = pygame.transform.scale(bgimg,(screen_width,screen_height))
+				self.display_surface.blit(bgimg,(0,0))
+
+			pygame.display.update()
+			# print("End a game")
+			if self.is_exit:
+				return
+
+	# def pause(self):
+	# 	pass
+
+	# def reset(self):
+	# 	pass
+
+	def generate_star(self):
+		star = Star((randint(0,self.world_size[0]-tile_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-tile_size)-self.world_shift[1]),
+					item_size,
+					self)
+		identical = pygame.sprite.spritecollide(star, self.tiles, False)
+		if len(identical) == 0:
+			# print("New star is created at ({},{})".format(star.rect.left,star.rect.top))
+			self.tiles.add(star)
+			self.playerGathers.add(star)
+
+	def generate_bird(self,boss=False):
+		if not boss:
+			bird = Bird((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+					self)
+		else:
+			bird = Boss((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
+				randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+				self)
+		identical = pygame.sprite.spritecollide(bird, self.player, False)
+		if len(identical) == 0:
+			# print("New bird is created at ({},{})".format(bird.rect.left,bird.rect.top))
+			self.tiles.add(bird)
+			self.playerColliders.add(bird)
+
+	def generate_box(self):
+		box = Box((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
+					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
+					item_size,
+					self)
+		identical = pygame.sprite.spritecollide(box, self.tiles, False)
+		if len(identical) == 0:
+			# print("New box is created at ({},{})".format(bird.rect.left,bird.rect.top))
+			self.tiles.add(box)
+			self.playerGathers.add(box)
+
+	def set_screen(self):
+		"""Sets (resets) the self.screen variable with the proper fullscreen"""
+		if conf.fullscreen:
+			fullscreen = pygame.FULLSCREEN | pygame.SCALED
+		else:
+			fullscreen = 0
+		self.screen = pygame.display.set_mode((WIDTH, HEIGHT), fullscreen)
 
 	def setup_level(self,layout):
 		player_pos = (1152, 512)
@@ -109,7 +192,10 @@ class Level:
 
 		player.scroll(scroll)
 		for sprites in self.tiles:
-			sprites.rect.center -= vec(scroll)
+			if isinstance(sprites,Enemy):
+				sprites.pos -= vec(scroll)
+			else:
+				sprites.rect.center -= vec(scroll)
 		for sprites in self.bullets:
 			sprites.pos -= vec(scroll)
 		for sprites in self.particles:
@@ -125,6 +211,9 @@ class Level:
 				sys.exit()
 			elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
 				self.playermoves.flyToMouse = True
+			elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and self.game_over:
+				self.is_exit = True
+
 		if self.game_over:
 			return
 		# slomo and fly 
@@ -136,8 +225,42 @@ class Level:
 		self.scroll_world()
 
 	def update(self,delta):
+		# print(self.world_shift)
+		self.delta = delta
 		if self.aim_fly:
 			delta = delta * SLOMO_SPEED
+
+		# Cooldown + Generate star
+		self.cooldown_star -= delta
+		if self.cooldown_star <= 0:
+			self.cooldown_star = max_cooldown_star
+			for i in range(number_star_generated):
+				self.generate_star()
+		
+		# Cooldown + Generate bird
+		self.cooldown_bird -= delta
+		if self.cooldown_bird <= 0:
+			self.cooldown_bird = max_cooldown_bird
+			cnt = 0
+			lbird =[]
+			for x in self.playerColliders:
+				if isinstance(x,Bird):
+					cnt+=1
+					lbird.append(x)
+			if cnt<10:
+				for i in range(number_bird_generated):
+					self.generate_bird()
+			else:
+				for x in lbird:
+					x.kill()
+				self.generate_bird(True)
+		
+		# Cooldown + Generate box
+		self.cooldown_box -= delta
+		if self.cooldown_box <= 0:
+			self.cooldown_box = max_cooldown_box
+			for i in range(number_box_generated):
+				self.generate_bird()
 
 		# player
 		if not self.game_over:
@@ -154,11 +277,11 @@ class Level:
 			particle.update(delta, self.display_surface)
 			if particle.killed:
 				self.particles.remove(particle)
-		if self.game_over:
-			bgimg = load_image("game_over.png")
-			bgimg = pygame.transform.scale(bgimg,(screen_width,screen_height))
-			self.display_surface.blit(bgimg,(0,0))
-			return
+		# if self.game_over:
+		# 	bgimg = load_image("game_over.png")
+		# 	bgimg = pygame.transform.scale(bgimg,(screen_width,screen_height))
+		# 	self.display_surface.blit(bgimg,(0,0))
+		# 	return
 
 		# aim
 		if self.aim_fly:
@@ -167,6 +290,7 @@ class Level:
 			pygame.draw.line(self.display_surface,(255,255,255),(px,py),pygame.mouse.get_pos())
 			self.player.sprite.reduceLife(40*delta)
 		self.health_bar.update(self.display_surface)
+		self.timer.update(self.display_surface)
 	
 	def draw_bg(self):
 		for rect in self.bg_rects:
