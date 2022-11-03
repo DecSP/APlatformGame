@@ -1,4 +1,4 @@
-# SquareGame
+# Bird's Rage - A Platform Game
 Note: you should have python3 installed, all the requirements are python pip packages, and can be install by `pip install <package>`
 
 ## How to run:
