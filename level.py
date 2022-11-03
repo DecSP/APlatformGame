@@ -293,6 +293,7 @@ class Level:
 		self.timer.update()
 		self.score.update()
 		statisticSurf= pygame.Surface((max(self.timer.text.get_width(),self.score.text.get_width())+50,80))
+		statisticSurf.fill((0,0,0))
 		statisticSurf.set_alpha(150)
 		self.display_surface.blit(statisticSurf,(0,30))
 		self.timer.draw(self.display_surface)

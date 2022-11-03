@@ -68,6 +68,7 @@ def initImage(boss=False):
 	images=[]
 	for i in range(img.get_width()//swidth):
 		surf=pygame.Surface((swidth,swidth))
+		surf.fill((0,0,0))
 		surf.set_colorkey((0,0,0))
 		surf.blit(img,(-i*swidth,0))
 		images.append(surf)

@@ -73,6 +73,7 @@ Target:
         title = pygame.font.SysFont("Arial", 90, bold=True).render(self.GAME, True, self.TITLE_COLOUR)
         self.title_width = title.get_width()
         surf= pygame.Surface((screen_width-300,screen_height))
+        surf.fill((0,0,0))
         surf.set_alpha(200)
         while True:
 
