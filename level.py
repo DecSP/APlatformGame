@@ -2,7 +2,7 @@ from random import randint
 import sys
 import pygame
 from load_file import load_image 
-from tiles.Item import Box,Star
+from tiles.Item import Box, MedKit,Star
 from tiles.Wall import Wall
 from tiles.Enemy import Bird,Enemy,Boss
 from tiles.Lava import Lava
@@ -33,6 +33,7 @@ class Level:
 		self.health_bar = HealthBar(self.player.sprite,[14, 5], 300, 20, [0, 200, 0])
 		self.timer = Timer([14, 30], self)
 		self.score = Score([14, 70], self)
+		self.target_img = load_image("target.png")
 		self.game_over=False
 		
 		self.aim_fly = False
@@ -72,16 +73,19 @@ class Level:
 	# def reset(self):
 	# 	pass
 
-	def generate_star(self):
-		star = Star((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
+	def generate_item(self,obj):
+		if randint(1,10)==1:
+			obj=Star
+		elif randint(1,100)==1:
+			obj=Box
+		obj = obj((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
 					randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
 					item_size,
 					self)
-		identical = pygame.sprite.spritecollide(star, self.tiles, False)
+		identical = pygame.sprite.spritecollide(obj, self.tiles, False)
 		if len(identical) == 0:
-			# print("New star is created at ({},{})".format(star.rect.left,star.rect.top))
-			self.tiles.add(star)
-			self.playerGathers.add(star)
+			self.tiles.add(obj)
+			self.playerGathers.add(obj)
 
 	def generate_bird(self,boss=0):
 		if not boss:
@@ -97,17 +101,6 @@ class Level:
 			# print("New bird is created at ({},{})".format(bird.rect.left,bird.rect.top))
 			self.tiles.add(bird)
 			self.playerColliders.add(bird)
-
-	def generate_box(self):
-		box = Box((randint(0,self.world_size[0]-item_size)-self.world_shift[0],
-					randint(0,self.world_size[1]-item_size)-self.world_shift[1]),
-					item_size,
-					self)
-		identical = pygame.sprite.spritecollide(box, self.tiles, False)
-		if len(identical) == 0:
-			# print("New box is created at ({},{})".format(bird.rect.left,bird.rect.top))
-			self.tiles.add(box)
-			self.playerGathers.add(box)
 
 	def set_screen(self):
 		"""Sets (resets) the self.screen variable with the proper fullscreen"""
@@ -241,7 +234,7 @@ class Level:
 		if self.cooldown_star <= 0:
 			self.cooldown_star = max_cooldown_star
 			for i in range(number_star_generated):
-				self.generate_star()
+				self.generate_item(MedKit)
 		
 		# Cooldown + Generate bird
 		self.cooldown_bird -= delta
@@ -298,6 +291,8 @@ class Level:
 		self.health_bar.update(self.display_surface)
 		self.timer.update(self.display_surface)
 		self.score.update(self.display_surface)
+		self.display_surface.blit(
+		self.target_img, vec(pygame.mouse.get_pos()) - vec(self.target_img.get_size()) / 2)
 	
 	def draw_bg(self):
 		for rect in self.bg_rects:

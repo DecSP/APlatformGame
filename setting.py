@@ -61,6 +61,7 @@ SOUND_FILES = (
     "swoosh.wav",
     "hurt.wav",
     "boss_die.mp3",
+    "star_power.mp3",
 )
 
 BACKGROUND = (0x11, 0x11, 0x00)

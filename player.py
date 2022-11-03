@@ -1,8 +1,9 @@
+from random import randint
 import pygame 
 from load_file import * 
 from setting import *
-from tiles.Enemy import Bird, Boss
-from tiles.Item import Box, Star
+from tiles.Enemy import Bird, Boss, Enemy
+from tiles.Item import Box, MedKit, Star
 from tiles.Lava import Lava
 from tiles.Thorn import Thorn
 from tiles.Wall import Wall
@@ -14,7 +15,6 @@ class PMoves:
 	def __init__(self):
 		self.flyToMouse = False
 
-
 class Player(pygame.sprite.Sprite):
 	def __init__(self,pos,game):
 		super().__init__()
@@ -22,6 +22,9 @@ class Player(pygame.sprite.Sprite):
 		self.initImg()
 		self.rect = self.image.get_rect(topleft = pos)
 		self.life = self.max_life = 100
+		self.starModeTime = 0
+		self.starShootDur = 0.4
+		self.nextShoot = 0
 
 		# player movement
 		self.v = pygame.math.Vector2(0,0)
@@ -64,12 +67,20 @@ class Player(pygame.sprite.Sprite):
 				if hit.life == 0: 
 					self.game.score.score+=hit.max_life
 					hit.die()
+			elif isinstance(hit,MedKit):
+				self.game.particles.append(
+                    CircleExplosion(hit.rect.center, (255, 50, 50), 7, 100)
+                )
+				self.addLife(30)
+				sound.play('item')
+				hit.kill()
 			elif isinstance(hit,Star):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (255, 255, 50), 7, 100)
                 )
-				self.addLife(30)
-				sound.play('item')
+				self.starModeTime = 3
+				sound.stop('music')
+				sound.play('star_power',-1)
 				hit.kill()
 			elif isinstance(hit,Box):
 				self.game.particles.append(
@@ -142,6 +153,30 @@ class Player(pygame.sprite.Sprite):
 		self.v.y = mouse_pos[1] - ceny
 		self.normalize_to_speed()
 
+	def starMode(self,delta):
+		if self.starModeTime>0:
+			self.starModeTime -=delta
+			if self.starModeTime<=0:
+				sound.stop('star_power')
+				if not self.game.game_over:
+					sound.play('music',-1)
+		if self.starModeTime<=0:
+			return
+		self.nextShoot -=delta
+		if self.nextShoot <= 0:
+			self.nextShoot = self.starShootDur
+			v=vec([1,0])
+			n=randint(10,30)
+			for j in range(n):
+				self.game.bullets.append(
+					Bullet(
+						self.game,
+						v.rotate(360/n*j),
+						vec(self.rect.center)
+					)
+
+				)
+
 
 	def apply_gravity(self,delta):
 		self.v.y += self.gravity*delta
@@ -171,7 +206,58 @@ class Player(pygame.sprite.Sprite):
 			self.flyToMouse()
 			sound.play('swoosh')
 			playermoves.flyToMouse=False
+		
+		self.starMode(delta)
 		self.apply_gravity(delta)
 		self.move(delta)
 		self.animate(delta)
 	
+
+
+class Bullet:
+	def __init__(self, game, vector, pos,color = (100,255,100)):
+		self.game = game
+		self.color = color
+		try:
+			self.vector = vector.normalize()
+		except:
+			self.vector = vec(0, 0)
+		self.pos = vec(pos)
+
+	def update(self, dt):
+		for tile in self.game.tiles:
+			if isinstance(tile,Wall):
+				if tile.rect.collidepoint(self.pos):
+					try:
+						self.game.bullets.remove(self)
+					except:
+						pass
+			elif isinstance(tile,Enemy):
+				if tile.rect.collidepoint(self.pos):
+					try:
+						if isinstance(tile,Bird):
+							tile.die()
+						else:
+							tile.reduceLife(1)
+							if tile.life==0:
+								tile.die()
+						self.game.bullets.remove(self)
+					except:
+						pass
+
+		self.pos += self.vector * 500 * dt
+		if not (-50 <= self.pos.x <= self.game.display_surface.get_width() + 50):
+			try:
+				self.game.bullets.remove(self)
+			except:
+				pass
+		if not (-50 <= self.pos.y <= self.game.display_surface.get_height() + 50):
+			try:
+				self.game.bullets.remove(self)
+			except:
+				pass
+
+	def draw(self, surface):
+		pygame.draw.line(
+			surface, self.color, self.pos, self.pos + self.vector * 30, 4
+		)
