@@ -37,7 +37,7 @@ class Level:
 		self.game_over=False
 		
 		self.aim_fly = False
-		self.cooldown_star = max_cooldown_star
+		self.cooldown_medkit = max_cooldown_medkit
 		self.cooldown_bird = max_cooldown_bird
 		self.cooldown_box = max_cooldown_box
 
@@ -73,19 +73,25 @@ class Level:
 	# def reset(self):
 	# 	pass
 
-	def generate_item(self,obj):
-		if randint(1,10)==1:
-			obj=Star
-		elif randint(1,100)==1:
-			obj=Box
-		obj = obj((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
+	def generate_medkit(self):
+		obj = MedKit((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
 					randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
-					item_size,
 					self)
 		identical = pygame.sprite.spritecollide(obj, self.tiles, False)
-		if len(identical) == 0:
-			self.tiles.add(obj)
-			self.playerGathers.add(obj)
+		for tile in identical:
+			if not isinstance(tile,Enemy): return
+		self.tiles.add(obj)
+		self.playerGathers.add(obj)
+	
+	def generate_box(self):
+		obj = Box((randint(tile_size*2,self.world_size[0]-tile_size*2)-self.world_shift[0],
+					randint(tile_size*2,self.world_size[1]-tile_size*2)-self.world_shift[1]),
+					self)
+		identical = pygame.sprite.spritecollide(obj, self.tiles, False)
+		for tile in identical:
+			if not isinstance(tile,Enemy): return
+		self.tiles.add(obj)
+		self.playerColliders.add(obj)
 
 	def generate_bird(self,boss=0):
 		if not boss:
@@ -144,9 +150,9 @@ class Level:
 					self.tiles.add(star)
 					self.playerGathers.add(star)
 				elif cell == 'B':
-					box = Box((x,y),item_size,self)
+					box = Box((x,y),self)
 					self.tiles.add(box)
-					self.playerGathers.add(box)
+					self.playerColliders.add(box)
 		
 		self.bg_rects=[]
 		factor = 1/4
@@ -230,11 +236,11 @@ class Level:
 			delta = delta * SLOMO_SPEED
 
 		# Cooldown + Generate star
-		self.cooldown_star -= delta
-		if self.cooldown_star <= 0:
-			self.cooldown_star = max_cooldown_star
-			for i in range(number_star_generated):
-				self.generate_item(MedKit)
+		self.cooldown_medkit -= delta
+		if self.cooldown_medkit <= 0:
+			self.cooldown_medkit = max_cooldown_medkit
+			for i in range(number_medkit_generated):
+				self.generate_medkit()
 		
 		# Cooldown + Generate bird
 		self.cooldown_bird -= delta
@@ -259,7 +265,7 @@ class Level:
 		if self.cooldown_box <= 0:
 			self.cooldown_box = max_cooldown_box
 			for i in range(number_box_generated):
-				self.generate_bird()
+				self.generate_box()
 
 		# player
 		if not self.game_over:

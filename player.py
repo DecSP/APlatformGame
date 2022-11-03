@@ -3,7 +3,7 @@ import pygame
 from load_file import * 
 from setting import *
 from tiles.Enemy import Bird, Boss, Enemy
-from tiles.Item import Box, MedKit, Star
+from tiles.Item import Box, MedKit, Potion, Star
 from tiles.Lava import Lava
 from tiles.Thorn import Thorn
 from tiles.Wall import Wall
@@ -61,7 +61,7 @@ class Player(pygame.sprite.Sprite):
 				hit.die()
 				self.game.score.score+=1
 				self.addLife(20)
-			if isinstance(hit,Boss):
+			elif isinstance(hit,Boss):
 				hit.reduceLife(1)
 				sound.play('explode')
 				if hit.life == 0: 
@@ -82,13 +82,28 @@ class Player(pygame.sprite.Sprite):
 				sound.stop('music')
 				sound.play('star_power',-1)
 				hit.kill()
-			elif isinstance(hit,Box):
+			elif isinstance(hit,Potion):
 				self.game.particles.append(
                     CircleExplosion(hit.rect.center, (50, 255, 50), 7, 100)
                 )
 				self.extendLife(30)
 				self.addLife(30)
 				sound.play('upgrade')
+				hit.kill()
+			elif isinstance(hit,Box):
+				self.game.particles.append(
+                    CircleExplosion(hit.rect.center, (255, 255, 255), 7, 100)
+                )
+				sound.play('box')
+				dif=(tile_size-item_size)/2
+				v = hit.rect.topleft
+				v = [v[0]+dif,v[1]+dif]
+				if randint(1,3)==1:
+					obj=Potion(v,item_size,self.game)
+				else:
+					obj=Star(v,item_size,self.game)
+				self.game.tiles.add(obj)
+				self.game.playerGathers.add(obj)
 				hit.kill()
 			elif isinstance(hit,Lava):
 				self.reduceLife(20)

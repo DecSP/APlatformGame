@@ -24,17 +24,17 @@ level_map = [
 'L                                                                     R',
 'L                                                                   B R',
 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']
-item_size = 48
+item_size = 32
 player_size = [32,32]
 tile_size = 64
 screen_width = 1200
 screen_height = 704
 
-max_cooldown_star = 4
-max_cooldown_bird = 4
+max_cooldown_medkit = 4
+max_cooldown_bird = 6
 max_cooldown_box = 10
 
-number_star_generated = 2
+number_medkit_generated = 2
 number_bird_generated = 5
 number_box_generated = 1
 
@@ -59,6 +59,7 @@ SOUND_FILES = (
     "hurt.wav",
     "boss_die.mp3",
     "star_power.mp3",
+    "box.wav",
 )
 
 BACKGROUND = (0x11, 0x11, 0x00)
