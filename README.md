@@ -1,17 +1,9 @@
-# SquareGame
-Note: you should have python3 installed, all the requirements are python pip packages, and can be install by `pip install <package>`
-
-## How to run:
-* Requirements: pygame
-* Run:
-```
-python main.py
-```
+# Bird's Rage - A Platform Game
+Note: build for wasm - pygbag
 
 ## How to build:
-* Requirements: pygame, pyinstaller
+* Requirements: pygame, pygbag
 * Build:
 ```
-python build_script.py
+pygbag .
 ```
-* Go to the `dist` folder, the single file there is the executable

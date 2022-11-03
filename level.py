@@ -1,3 +1,4 @@
+import asyncio
 from random import randint
 import sys
 import pygame
@@ -44,7 +45,7 @@ class Level:
 		self.clock = pygame.time.Clock()
 		self.is_exit = False
 
-	def play(self):
+	async def play(self):
 		# Display the menu
 		
 		while True:
@@ -63,6 +64,7 @@ class Level:
 				self.display_surface.blit(bgimg,(0,0))
 
 			pygame.display.update()
+			await asyncio.sleep(0)
 			# print("End a game")
 			if self.is_exit:
 				return

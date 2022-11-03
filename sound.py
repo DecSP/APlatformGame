@@ -13,7 +13,7 @@ class __Sound(object):
 
         for filename in SOUND_FILES:
             sound = filename.rsplit(".", 1)[0]
-            self._sounds[sound] = pygame.mixer.Sound(lib.filename(filename))
+            self._sounds[sound] = pygame.mixer.Sound(lib.filename(sound+".ogg"))
 
     def play(self, sound, times=0):
         if conf.sound:

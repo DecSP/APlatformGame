@@ -1,3 +1,4 @@
+import asyncio
 import pygame
 
 import lib
@@ -64,7 +65,7 @@ Target:
         self._choice = self._last_choice
         self._choice_max = len(self.MAIN_OPTIONS)
 
-    def show(self):
+    async def show(self):
         sound.play("title", -1)
 
         self._last_choice = 0
@@ -100,6 +101,7 @@ Target:
             
 
             pygame.display.update()
+            await asyncio.sleep(0)
             self.game.clock.tick(MENU_FRAME_RATE)
 
             for event in pygame.event.get():
