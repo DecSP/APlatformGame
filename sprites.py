@@ -33,10 +33,12 @@ class Timer:
         self.game = game
         self.time = 0
 
-    def update(self, surface):
+    def update(self):
         self.time += self.game.delta
         self.font = pygame.font.SysFont("Arial", 30, bold=True)
         self.text = self.font.render("Time: {}s".format(int(self.time)), True, "turquoise1")
+
+    def draw(self,surface):
         surface.blit(self.text, self.pos)
 
 class Score: 
@@ -45,9 +47,11 @@ class Score:
         self.game = game
         self.score = 0
 
-    def update(self, surface):
+    def update(self):
         self.font = pygame.font.SysFont("Arial", 30, bold=True)
         self.text = self.font.render("Score: {}".format(self.score), True, "turquoise1")
+
+    def draw(self,surface):
         surface.blit(self.text, self.pos)
 
 class CircleExplosion:

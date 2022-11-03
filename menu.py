@@ -11,9 +11,9 @@ class Menu(object):
     GAME = GAME
     ALT = ""
 
-    TITLE_COLOUR = "#00B503"#(0x00, 0x99, 0xFF) ## ??
-    SELECTED_COLOUR = (0xFF, 0x33, 0xCC) ## ?? 
-    UNSELECTED_COLOUR = "#DEEAF7" #WHITE ## ?
+    TITLE_COLOUR = "#E14D2A"#(0x00, 0x99, 0xFF) ## ??
+    SELECTED_COLOUR = "#82CD47" ## ?? 
+    UNSELECTED_COLOUR = WHITE #WHITE ## ?
 
     START = "START"
     OPTIONS = "OPTIONS"
@@ -25,11 +25,10 @@ class Menu(object):
 
     FULLSCREEN = "Fullscreen Mode"
     SOUND = "Sounds"
-    TURBO = "Turbo Mode"
     BACK = "Return to Main Menu"
 
-    OPTIONS_OPTIONS = [FULLSCREEN, SOUND, TURBO, BACK]
-    OPTIONS_CONF = {FULLSCREEN: "fullscreen", SOUND: "sound", TURBO: "turbo"}
+    OPTIONS_OPTIONS = [FULLSCREEN, SOUND, BACK]
+    OPTIONS_CONF = {FULLSCREEN: "fullscreen", SOUND: "sound"}
 
     NOSCORES = "There are no scores available at this time"
 
@@ -71,17 +70,20 @@ Target:
         self._last_choice = 0
         self._return_to_menu()
         # background = lib.draw_background_menu()
-        
+        title = pygame.font.SysFont("Arial", 90, bold=True).render(self.GAME, True, self.TITLE_COLOUR)
+        self.title_width = title.get_width()
+        surf= pygame.Surface((screen_width-300,screen_height))
+        surf.set_alpha(200)
         while True:
 
             # self.game.display_surface.blit(background, (0, 0))
             self.game.draw_bg()
+            self.game.display_surface.blit(surf, (WIDTH / 2 - surf.get_width() / 2, 0))
+            
 
             y_pos = 60
 
             #  lib.render_text(self.GAME, 72, self.TITLE_COLOUR)
-            title = pygame.font.SysFont("Arial", 90, bold=True).render(self.GAME, True, self.TITLE_COLOUR)
-            self.title_width = title.get_width()
             self.game.display_surface.blit(title, (WIDTH / 2 - self.title_width / 2, y_pos))
             y_pos += title.get_height()
 
@@ -179,8 +181,8 @@ Target:
     def _options(self, y_pos):
 
         y_pos += 50
-        x_pos_text = WIDTH / 2 - self.title_width / 2 + 100
-        x_pos_box = WIDTH / 2 + self.title_width / 2 - 150
+        x_pos_text = WIDTH / 2 - self.title_width / 2 + 50
+        x_pos_box = WIDTH / 2 + self.title_width / 2 - 100
 
         for option_text in self.OPTIONS_OPTIONS:
 

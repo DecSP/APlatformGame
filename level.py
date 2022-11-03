@@ -289,8 +289,14 @@ class Level:
 			pygame.draw.line(self.display_surface,(255,255,255),(px,py),pygame.mouse.get_pos())
 			self.player.sprite.reduceLife(40*delta)
 		self.health_bar.update(self.display_surface)
-		self.timer.update(self.display_surface)
-		self.score.update(self.display_surface)
+
+		self.timer.update()
+		self.score.update()
+		statisticSurf= pygame.Surface((max(self.timer.text.get_width(),self.score.text.get_width())+50,80))
+		statisticSurf.set_alpha(150)
+		self.display_surface.blit(statisticSurf,(0,30))
+		self.timer.draw(self.display_surface)
+		self.score.draw(self.display_surface)
 		self.display_surface.blit(
 		self.target_img, vec(pygame.mouse.get_pos()) - vec(self.target_img.get_size()) / 2)
 	

@@ -41,9 +41,9 @@ class Player(pygame.sprite.Sprite):
 		self.images=[images,flipImgs]
 		self.image = images[0]
 		
-	def normalize_to_speed(self):
+	def normalize_to_speed(self,speed):
 		if self.v.xy!=[0,0]:
-			self.v.scale_to_length(self.speed)
+			self.v.scale_to_length(speed)
 		
 	def addLife(self,x):
 		self.life+=x
@@ -151,7 +151,8 @@ class Player(pygame.sprite.Sprite):
 
 		self.v.x = mouse_pos[0] - cenx
 		self.v.y = mouse_pos[1] - ceny
-		self.normalize_to_speed()
+		speed = self.speed*min(1,self.v.length()/150)
+		self.normalize_to_speed(speed)
 
 	def starMode(self,delta):
 		if self.starModeTime>0:

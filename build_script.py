@@ -6,7 +6,7 @@ if __name__ == "__main__":
         [
             "main.py",
             "--add-data=data%sdata" % os.pathsep,
-            "--name=SquareGame",
+            "--name=BirdRage",
             "-w",
             "-F",
         ]
